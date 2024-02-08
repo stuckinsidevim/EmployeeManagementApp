@@ -8,8 +8,18 @@ namespace EmployeeManagementApp.Data
         public List<Leave> Leaves { get; } = new List<Leave>();
 
         private static InMemoryDataContext? _instance;
-        // TODO: make it thread safe.
-        public static InMemoryDataContext Instance => _instance ??= new InMemoryDataContext();
+        private static readonly object _lock = new();
+        public static InMemoryDataContext Instance
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    _instance ??= new InMemoryDataContext();
+                    return _instance;
+                }
+            }
+        }
 
         private InMemoryDataContext() { }
     }
