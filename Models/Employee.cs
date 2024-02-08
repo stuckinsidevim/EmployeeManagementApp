@@ -4,9 +4,9 @@ namespace EmployeeManagementApp.Models
     {
         public int EmployeeId { get; set; }
         public string Name { get; set; }
-        public Role Role { get; set; } // Assuming Role is an enum
+        public Role Role { get; set; }
         public int? ManagerId { get; set; }
-        // Direct references without lazy loading
+
         public Employee Manager { get; set; }
         public ICollection<Employee> Reportees { get; set; }
         public ICollection<Leave> Leaves { get; set; }
