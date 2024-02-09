@@ -1,8 +1,10 @@
 using EmployeeManagementApp.Data.Repositories.Interfaces;
+using EmployeeManagementApp.DTOs;
 using EmployeeManagementApp.Models;
 
 namespace EmployeeManagementApp.Services
 {
+
     public class EmployeeService
     {
         private readonly IEmployeeRepository _employeeRepository;
@@ -32,6 +34,27 @@ namespace EmployeeManagementApp.Services
         {
             return _employeeRepository.GetReportees(managerId);
         }
+
+        public IEnumerable<Employee> GetAllEmployees()
+        {
+            return _employeeRepository.GetAllEmployees();
+        }
+
+        internal object GetEmployeeById(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal bool UpdateEmployee(EmployeeDto employeeDto)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal bool DeleteEmployee(int id)
+        {
+            throw new NotImplementedException();
+        }
+
         // Additional methods as needed
     }
 }

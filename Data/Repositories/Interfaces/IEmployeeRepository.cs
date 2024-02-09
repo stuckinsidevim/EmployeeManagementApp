@@ -9,6 +9,7 @@ namespace EmployeeManagementApp.Data.Repositories.Interfaces
         void Update(Employee employee);
         IEnumerable<Employee> GetAllManagers();
         IEnumerable<Employee> GetReportees(int managerId);
+        IEnumerable<Employee> GetAllEmployees();
         // Add other necessary operations
     }
 }

@@ -1,4 +1,5 @@
 using EmployeeManagementApp.Data.Repositories.Interfaces;
+using EmployeeManagementApp.DTOs;
 using EmployeeManagementApp.Models;
 
 namespace EmployeeManagementApp.Services
@@ -15,14 +16,16 @@ namespace EmployeeManagementApp.Services
             _employeeRepository = employeeRepository;
         }
 
-        public void ApplyForLeave(int employeeId, Leave leave)
+        public void ApplyForLeave(LeaveDto leaveDto)
         {
-            var employee = _employeeRepository.GetById(employeeId);
-            if (employee != null)
+            var leave = new Leave
             {
-                leave.EmployeeId = employeeId;
-                _leaveRepository.Add(leave);
-            }
+                EmployeeId = leaveDto.EmployeeId,
+                StartDate = leaveDto.StartDate,
+                EndDate = leaveDto.EndDate,
+                Status = leaveDto.Status, // Assuming initial status is set here.
+            };
+            _leaveRepository.Add(leave);
         }
 
         public void ApproveLeave(int managerId, int leaveId, LeaveStatus status)
@@ -37,6 +40,28 @@ namespace EmployeeManagementApp.Services
             }
         }
 
+        public IEnumerable<LeaveDto> GetLeavesForEmployee(int employeeId)
+        {
+            var leaves = _leaveRepository.GetByEmployeeId(employeeId);
+            return leaves.Select(l => new LeaveDto
+            {
+                LeaveId = l.LeaveId,
+                EmployeeId = l.EmployeeId,
+                StartDate = l.StartDate,
+                EndDate = l.EndDate,
+                Status = l.Status,
+            }).ToList();
+        }
+
+        internal object GetLeaveById(int id)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal bool UpdateLeaveStatus(int id, LeaveStatusDto statusDto)
+        {
+            throw new NotImplementedException();
+        }
         // Additional methods as needed
     }
 
