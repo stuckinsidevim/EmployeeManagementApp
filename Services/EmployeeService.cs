@@ -1,6 +1,7 @@
 using EmployeeManagementApp.Data.Repositories.Interfaces;
 using EmployeeManagementApp.DTOs;
 using EmployeeManagementApp.Models;
+using EmployeeManagementApp.Utilities;
 
 namespace EmployeeManagementApp.Services
 {
@@ -14,9 +15,26 @@ namespace EmployeeManagementApp.Services
             _employeeRepository = employeeRepository;
         }
 
-        public void AddEmployee(Employee employee)
+        public Employee AddEmployee(EmployeeSetDto employeeDto, int? managerId)
         {
+            if (!Enum.TryParse(employeeDto.Role, true, out Role parsedRole))
+            {
+                throw new ArgumentException($"Invalid role value: {employeeDto.Role}");
+            }
+
+            var employee = new Employee
+            {
+                Id = Uid.NewUid(),
+                Name = employeeDto.Name,
+                Role = parsedRole,
+
+                Username = employeeDto.Username,
+                Password = employeeDto.Password,
+
+                ManagerId = managerId
+            };
             _employeeRepository.Add(employee);
+            return employee;
         }
 
         public void AddReportee(int managerId, Employee reportee)
@@ -24,7 +42,7 @@ namespace EmployeeManagementApp.Services
             var manager = _employeeRepository.GetById(managerId);
             if (manager != null)
             {
-                reportee.ManagerId = manager.EmployeeId;
+                reportee.ManagerId = manager.Id;
                 manager.Reportees.Add(reportee);
                 _employeeRepository.Add(reportee);
             }
@@ -40,12 +58,12 @@ namespace EmployeeManagementApp.Services
             return _employeeRepository.GetAllEmployees();
         }
 
-        internal object GetEmployeeById(int id)
+        public Employee GetEmployeeById(int id)
         {
-            throw new NotImplementedException();
+            return _employeeRepository.GetById(id);
         }
 
-        internal bool UpdateEmployee(EmployeeDto employeeDto)
+        internal bool UpdateEmployee(EmployeeSetDto employeeDto)
         {
             throw new NotImplementedException();
         }

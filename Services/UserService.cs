@@ -1,28 +1,33 @@
-using EmployeeManagementApp.Data;
+using System.Security.Authentication;
+using EmployeeManagementApp.Data.Repositories.Interfaces;
 using EmployeeManagementApp.Models;
 
 namespace EmployeeManagementApp.Services
 {
-    public class UserService
+    public class UserService : IAuthService<Employee>
     {
-        private readonly InMemoryDataContext _context;
+        private readonly IEmployeeRepository _employeeRepository;
 
-        public UserService(InMemoryDataContext context)
+        public UserService(IEmployeeRepository employeeRepository)
         {
-            _context = context;
+            _employeeRepository = employeeRepository;
         }
 
-        public Employee? Authenticate(string username, string password)
+        public Employee Authenticate(string username, string password)
         {
-            Employee? user = _context.Employees.FirstOrDefault(u => u.Username == username);
-            return user != null && VerifyPasswordHash(password, user.Password) ? user : null;
+            var user = _employeeRepository.GetByUsername(username) ?? throw new AuthenticationException("User not found.");
+            if (!VerifyPasswordHash(password, user.Password))
+            {
+                throw new AuthenticationException("Password is incorrect.");
+            }
+            return user;
         }
 
         private bool VerifyPasswordHash(string password, string storedHash)
         {
-            // Implement verification of hashed password
-            // This is pseudo-code. Use a proper hashing library like BCrypt.Net
+            // TODO: Implement verification of hashed password
             return true;
         }
     }
+
 }

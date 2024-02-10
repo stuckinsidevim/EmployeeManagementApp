@@ -1,19 +1,26 @@
 using EmployeeManagementApp.Data;
 using EmployeeManagementApp.Data.Repositories;
 using EmployeeManagementApp.Data.Repositories.Interfaces;
+using EmployeeManagementApp.Models;
+using EmployeeManagementApp.Profiles;
 using EmployeeManagementApp.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddSingleton(InMemoryDataContext.Instance);
 builder.Services.AddScoped<IEmployeeRepository, InMemoryEmployeeRepository>();
 builder.Services.AddScoped<ILeaveRepository, InMemoryLeaveRepository>();
 builder.Services.AddScoped<EmployeeService>();
 builder.Services.AddScoped<LeaveService>();
+builder.Services.AddScoped<IAuthService<Employee>, UserService>();
+builder.Services.AddAutoMapper(typeof(EmployeeManagementProfile));
 
 builder.Services.AddControllers();
+// NOTE: either remove jsonignore or do the below
+// builder.Services.AddControllers().AddJsonOptions(options =>
+//     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve
+// );
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
 {
     options.Cookie.Name = "EmployeeManagementApp.Auth";
@@ -47,6 +54,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         }
     };
 });
+builder.Services.Configure<RouteOptions>(options => { options.LowercaseUrls = true; });
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -54,7 +62,6 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

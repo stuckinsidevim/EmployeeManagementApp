@@ -1,6 +1,7 @@
 using EmployeeManagementApp.Data.Repositories.Interfaces;
 using EmployeeManagementApp.DTOs;
 using EmployeeManagementApp.Models;
+using EmployeeManagementApp.Utilities;
 
 namespace EmployeeManagementApp.Services
 {
@@ -16,16 +17,27 @@ namespace EmployeeManagementApp.Services
             _employeeRepository = employeeRepository;
         }
 
-        public void ApplyForLeave(LeaveDto leaveDto)
+        public IEnumerable<Leave> GetAllLeaves(int employeeId)
         {
+            return _leaveRepository.GetAll(employeeId);
+        }
+
+        public Leave ApplyForLeave(LeaveSetDto leaveDto, int employeeId)
+        {
+            if (leaveDto.StartDate >= leaveDto.EndDate)
+            {
+                throw new ArgumentException("Start date must be before the end date.");
+            }
             var leave = new Leave
             {
-                EmployeeId = leaveDto.EmployeeId,
+                Id = Uid.NewUid(), // NOTE: may be create Uid class for each model
+                EmployeeId = employeeId,
                 StartDate = leaveDto.StartDate,
                 EndDate = leaveDto.EndDate,
-                Status = leaveDto.Status, // Assuming initial status is set here.
+                Status = LeaveStatus.Pending,
             };
             _leaveRepository.Add(leave);
+            return leave;
         }
 
         public void ApproveLeave(int managerId, int leaveId, LeaveStatus status)
@@ -40,29 +52,47 @@ namespace EmployeeManagementApp.Services
             }
         }
 
-        public IEnumerable<LeaveDto> GetLeavesForEmployee(int employeeId)
+        public IEnumerable<LeaveSetDto> GetLeavesForEmployee(int employeeId)
         {
-            var leaves = _leaveRepository.GetByEmployeeId(employeeId);
-            return leaves.Select(l => new LeaveDto
+            throw new NotImplementedException();
+            // var leaves = _leaveRepository.GetByEmployeeId(employeeId);
+            // return leaves.Select(l => new LeaveSetDto
+            // {
+            //     Id = l.Id,
+            //     StartDate = l.StartDate,
+            //     EndDate = l.EndDate,
+            //     Status = l.Status,
+            // }).ToList();
+        }
+
+        public Leave GetLeaveById(int id)
+        {
+            return _leaveRepository.GetById(id);
+        }
+
+        public bool UpdateLeaveStatus(int id, LeaveStatusDto leaveStatusDto)
+        {
+
+            if (!Enum.TryParse(leaveStatusDto.Status, true, out LeaveStatus parsedLeaveStatus))
             {
-                LeaveId = l.LeaveId,
-                EmployeeId = l.EmployeeId,
-                StartDate = l.StartDate,
-                EndDate = l.EndDate,
-                Status = l.Status,
-            }).ToList();
+                throw new ArgumentException($"Invalid role value: {leaveStatusDto.Status}");
+            }
+            var toUpdateLeave = new Leave
+            {
+                Id = id,
+                Status = parsedLeaveStatus,
+            };
+            return _leaveRepository.Update(toUpdateLeave);
+
         }
 
-        internal object GetLeaveById(int id)
+        public bool CanManagerUpdateLeave(int managerId, int leaveId)
         {
-            throw new NotImplementedException();
-        }
+            var leave = _leaveRepository.GetById(leaveId);
+            if (leave == null) return false;
 
-        internal bool UpdateLeaveStatus(int id, LeaveStatusDto statusDto)
-        {
-            throw new NotImplementedException();
+            return _employeeRepository.GetReportees(managerId).Any(r => r.Id == leave.EmployeeId);
         }
-        // Additional methods as needed
     }
 
 

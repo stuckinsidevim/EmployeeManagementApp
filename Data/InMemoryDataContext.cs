@@ -4,6 +4,7 @@ namespace EmployeeManagementApp.Data
 {
     public class InMemoryDataContext
     {
+        // TODO: may be a set to throw eror on already existing users.
         public List<Employee> Employees { get; } = new List<Employee>();
         public List<Leave> Leaves { get; } = new List<Leave>();
 
@@ -21,6 +22,19 @@ namespace EmployeeManagementApp.Data
             }
         }
 
-        private InMemoryDataContext() { }
+        private InMemoryDataContext()
+        {
+            var topLevelManger = new Employee
+            {
+                Id = 0,
+                Name = "TopG",
+                Role = Role.Manager,
+
+                Username = "topg",
+                Password = "topg123",
+            };
+
+            Employees.Add(topLevelManger);
+        }
     }
 }

@@ -1,23 +1,23 @@
+using System.Text.Json.Serialization;
+
 namespace EmployeeManagementApp.Models
 {
     public class Employee
     {
-        public int EmployeeId { get; set; }
-        public string Name { get; set; }
-        public string Username { get; set; }
-        public string Password { get; set; }
+        public int Id { get; set; }
+        public string Name { get; set; } = null!;
         public Role Role { get; set; }
+
+        public string Username { get; set; } = null!;
+        public string Password { get; set; } = null!;
+
         public int? ManagerId { get; set; }
 
-        public Employee Manager { get; set; }
-        public ICollection<Employee> Reportees { get; set; }
-        public ICollection<Leave> Leaves { get; set; }
-
-        public Employee()
-        {
-            Reportees = new List<Employee>();
-            Leaves = new List<Leave>();
-        }
+        [JsonIgnore]
+        public Employee Manager { get; set; } = null!;
+        [JsonIgnore]
+        public ICollection<Employee> Reportees { get; set; } = null!;
+        public ICollection<Leave> Leaves { get; set; } = new List<Leave>();
     }
 
     public enum Role

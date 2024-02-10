@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using EmployeeManagementApp.DTOs;
+using EmployeeManagementApp.Models;
 using EmployeeManagementApp.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -11,18 +12,18 @@ namespace EmployeeManagementApp.Controllers
     [ApiController]
     public class SessionsController : ControllerBase
     {
-        private readonly UserService _userService;
+        private readonly IAuthService<Employee> _authService;
 
-        public SessionsController(UserService userService)
+        public SessionsController(IAuthService<Employee> authService)
         {
-            _userService = userService;
+            _authService = authService;
         }
 
         // POST: api/sessions (Login)
         [HttpPost]
         public async Task<IActionResult> CreateSession([FromBody] LoginDto loginDto)
         {
-            var user = _userService.Authenticate(loginDto.Username, loginDto.Password);
+            var user = _authService.Authenticate(loginDto.Username, loginDto.Password);
 
             if (user == null)
             {
@@ -32,7 +33,9 @@ namespace EmployeeManagementApp.Controllers
             var claims = new List<Claim>
             {
                 new(ClaimTypes.Name, user.Username),
-                new(ClaimTypes.Role, user.Role.ToString())
+                new(ClaimTypes.Role, user.Role.ToString()),
+                new(ClaimTypes.NameIdentifier, user.Id.ToString())
+
                 // Optionally, include more claims as necessary
             };
 

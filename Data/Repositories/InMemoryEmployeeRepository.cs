@@ -5,56 +5,58 @@ namespace EmployeeManagementApp.Data.Repositories
 {
     public class InMemoryEmployeeRepository : IEmployeeRepository
     {
-        private readonly InMemoryDataContext _dataContext;
+        private readonly InMemoryDataContext _context;
 
         public InMemoryEmployeeRepository(InMemoryDataContext dataContext)
         {
-            _dataContext = dataContext;
+            _context = dataContext;
         }
 
-        public Employee GetById(int id)
+        public Employee? GetById(int id)
         {
             // Using recursive method to ensure even nested reportees can be found
-            return FindEmployeeById(id, _dataContext.Employees);
+            return FindEmployeeById(id, _context.Employees);
         }
 
         public void Add(Employee employee)
         {
-            // Set the Manager relationship
+            if (employee.Role == Role.Manager)
+            {
+                employee.Reportees = new List<Employee>();
+            }
+
             if (employee.ManagerId.HasValue)
             {
                 var manager = GetById(employee.ManagerId.Value);
                 if (manager != null)
                 {
                     employee.Manager = manager;
-                    // Ensure the manager's Reportees list is updated
                     manager.Reportees ??= new List<Employee>();
                     manager.Reportees.Add(employee);
                 }
             }
 
-            // Add the employee to the repository
-            _dataContext.Employees.Add(employee);
+            _context.Employees.Add(employee);
         }
 
         public void Update(Employee employee)
         {
-            var existingEmployee = GetById(employee.EmployeeId);
+            var existingEmployee = GetById(employee.Id);
             if (existingEmployee != null)
             {
                 // Directly manipulating the list item, assuming employee reference is found
                 // This could be expanded to explicitly update fields if necessary
-                var index = _dataContext.Employees.IndexOf(existingEmployee);
+                var index = _context.Employees.IndexOf(existingEmployee);
                 if (index != -1)
                 {
-                    _dataContext.Employees[index] = employee;
+                    _context.Employees[index] = employee;
                 }
             }
         }
 
         public IEnumerable<Employee> GetAllManagers()
         {
-            return _dataContext.Employees.Where(e => e.Reportees != null && e.Reportees.Any()).ToList();
+            return _context.Employees.Where(e => e.Reportees != null && e.Reportees.Any()).ToList();
         }
 
         public IEnumerable<Employee> GetReportees(int managerId)
@@ -67,7 +69,7 @@ namespace EmployeeManagementApp.Data.Repositories
         {
             foreach (var employee in searchList)
             {
-                if (employee.EmployeeId == id)
+                if (employee.Id == id)
                 {
                     return employee;
                 }
@@ -81,9 +83,15 @@ namespace EmployeeManagementApp.Data.Repositories
             return null;
         }
 
+
         public IEnumerable<Employee> GetAllEmployees()
         {
-            return _dataContext.Employees;
+            return _context.Employees;
+        }
+
+        public Employee? GetByUsername(string username)
+        {
+            return _context.Employees.Find(e => e.Username == username);
         }
     }
 }
